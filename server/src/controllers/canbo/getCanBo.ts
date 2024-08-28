@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { db } from "../../db/setup";
-import { canBo, phong } from "../../db/schema";
+import { canBo, heSo, phong, quaTrinhLuong } from "../../db/schema";
 import { eq } from "drizzle-orm";
 
 const getCanBo = async (req: Request, res: Response) => {
@@ -29,7 +29,30 @@ const getCanBo = async (req: Request, res: Response) => {
       .where(eq(phong.maPhong, Number(canBoData.maPhong)));
     const tenPhongBan = phongBanInfo[0]?.tenPhong;
 
-    return res.status(200).json({ data: { ...canBoByID[0], tenPhongBan } });
+    const qtLinh = await db
+      .select()
+      .from(quaTrinhLuong)
+      .where(eq(quaTrinhLuong.maCanBo, String(id)))
+      .orderBy(quaTrinhLuong.ngayQD);
+
+    const data = [];
+
+    for (const qt of qtLinh) {
+      const maHeSo = qt?.maHeSo;
+      // Lấy thông tin từ bảng heSoLuong
+      const heSoLuongInfo = await db
+        .select()
+        .from(heSo)
+        .where(eq(heSo.maHeSo, Number(maHeSo)));
+
+      const heSoLuong = heSoLuongInfo[0];
+      const merge = { ...qt, heSoLuong };
+      data.push(merge);
+    }
+
+    return res
+      .status(200)
+      .json({ data: { ...canBoByID[0], tenPhongBan, data } });
   } catch (error) {
     console.log("Error while fetching user", error);
     return res

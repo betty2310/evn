@@ -10,14 +10,37 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Button } from "@/components/ui/button"
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table"
 import { Link } from "react-router-dom"
-import { SetStateAction, useState } from "react"
+import { SetStateAction, useEffect, useState } from "react"
 
 export function QtLuong() {
+  const [canbos, setCanbos] = useState([])
   const [maCanBo, setMaCanBo] = useState('')
   const [canbo, setCanBo] = useState({})
   const [ten, setTen] = useState("")
+  const [luong, setLuong] = useState([])
   const [chucvu, setChucVu] = useState("")
   const [phongban, setPhongBan] = useState("")
+  const [selectedUserId, setSelectedUserId] = useState('');
+
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
+
+  const fetchAllUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/canbo/');
+      const data = await response.json();
+      console.log(data)
+      const users = data.data.canbos
+      console.log(users)
+
+      // Assuming the API returns an array of user objects with an 'id' field
+      const ids = users.map(user => user.maCB);
+      setCanbos(ids);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+  };
 
   const handleFetchCanBo = async () => {
     if (maCanBo) {
@@ -32,11 +55,17 @@ export function QtLuong() {
         setPhongBan(data.data.tenPhongBan)
         setChucVu(data.data.chucVu)
         setTen(data.data.hoTen)
+        setLuong(data.data.data)
       } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
       }
     }
   };
+
+  const handleUserSelect = (value) => {
+    setSelectedUserId(value);
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-4 bg-gray-100">
       <Card>
@@ -48,6 +77,28 @@ export function QtLuong() {
             <div className="space-y-2">
               <Label htmlFor="employee-id">Mã cán bộ</Label>
               <Input id="employee-id" placeholder="CB000" value={maCanBo} onBlur={handleFetchCanBo} onChange={(e: { target: { value: SetStateAction<string> } }) => setMaCanBo(e.target.value)} />
+              <Select
+                id="employee-id"
+                placeholder="Select an employee"
+                value={selectedUserId}
+                onChange={handleUserSelect}
+                onBlur={handleFetchCanBo}
+                style={{ width: 200 }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Mã cán bộ" />
+                </SelectTrigger>
+                <SelectContent>
+                  {canbos.map(id => (
+                    <SelectItem key={id} value={id}>
+                      {id}
+                    </SelectItem>
+                  ))}
+
+                </SelectContent>
+              </Select>
+
+
             </div>
             <div className="space-y-2">
               <Label htmlFor="department">Phòng ban</Label>
@@ -93,22 +144,18 @@ export function QtLuong() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell className="font-medium">1</TableCell>
-                <TableCell>01/09/2005</TableCell>
-                <TableCell>QĐ-0543</TableCell>
-                <TableCell>1.78</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell className="font-medium">2</TableCell>
-                <TableCell>01/10/2006</TableCell>
-                <TableCell>QĐ-0544</TableCell>
-                <TableCell>2.00</TableCell>
-              </TableRow>
+              {luong.map((item, index) => (
+                <TableRow key={item.maQuaTrinh}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{new Date(item.ngayQD).toLocaleDateString('vi-VN')}</TableCell>
+                  <TableCell>{item.soQD}</TableCell>
+                  <TableCell>{item.heSoLuong.giaTri}</TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardFooter>
       </Card>
-    </div>
+    </div >
   )
 }
