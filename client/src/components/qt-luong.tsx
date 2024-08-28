@@ -62,8 +62,9 @@ export function QtLuong() {
     }
   };
 
-  const handleUserSelect = (value) => {
-    setSelectedUserId(value);
+  const handleUserSelect = async (value) => {
+    setMaCanBo(value);
+    await handleFetchCanBo();
   };
 
   return (
@@ -78,15 +79,13 @@ export function QtLuong() {
               <Label htmlFor="employee-id">Mã cán bộ</Label>
               <Input id="employee-id" placeholder="CB000" value={maCanBo} onBlur={handleFetchCanBo} onChange={(e: { target: { value: SetStateAction<string> } }) => setMaCanBo(e.target.value)} />
               <Select
-                id="employee-id"
-                placeholder="Select an employee"
-                value={selectedUserId}
-                onChange={handleUserSelect}
+                value={maCanBo}
+                onValueChange={handleUserSelect}
                 onBlur={handleFetchCanBo}
                 style={{ width: 200 }}
               >
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Mã cán bộ" />
+                  <SelectValue placeholder="Mã cán bộ" value={maCanBo} />
                 </SelectTrigger>
                 <SelectContent>
                   {canbos.map(id => (
